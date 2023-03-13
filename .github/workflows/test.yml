@@ -3,7 +3,7 @@ name: Format code and test
 on: [push, pull_request]
 
 jobs:
-  format-lint:
+  format-code:
     runs-on: ubuntu-latest
     strategy:
       matrix:
