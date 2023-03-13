@@ -1,0 +1,48 @@
+name: Format code and test
+
+on: [push, pull_request]
+
+jobs:
+  format-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [">=18.7.0"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: pnpm install --immutable
+
+      - name: Format code
+        run: pnpm run format
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [format-lint]
+    strategy:
+      matrix:
+        node-version: [">=18.7.0"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: pnpm install --immutable
+
+      - name: Run tests
+        run: |
+          cp src/config.example.ts src/config.ts
+          pnpm run build
+          rm -rf dist 
