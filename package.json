@@ -1,6 +1,6 @@
 {
   "name": "soon",
-  "version": "0.3.7-0706",
+  "version": "0.3.8-1207",
   "main": "dist/shard.js",
   "license": "GPL-3.0",
   "scripts": {

@@ -16,6 +16,7 @@ import {
   ButtonStyle,
 } from "discord.js";
 import { Track } from "shoukaku";
+import { queueEmpty } from "@soon/utils/decorators/Music";
 
 @ApplyOptions<CommandOptions>({
   name: "queue",
@@ -23,27 +24,12 @@ import { Track } from "shoukaku";
   category: "Music",
 })
 export class QueueCommand extends Command {
+  @queueEmpty()
   public async exec(ctx: CommandContext): Promise<Message | void> {
     await ctx.deferReply();
     const guild = ctx.interaction.guild!;
     const user = ctx.user;
-    const dispatcher = this.client.shoukaku.dispatcher.get(guild.id);
-
-    if (!dispatcher || !dispatcher.queue.totalSize) {
-      const embed = ctx
-        .makeEmbed(
-          ":x: Error",
-          "There is no song that is played at this time, add the song with commands `/play, /search`",
-        )
-        .setFooter({
-          text: user.tag,
-          iconURL: user.avatarURL()!,
-        });
-      return ctx.reply({
-        embeds: [embed],
-        timeout: 15_000,
-      });
-    }
+    const dispatcher = this.client.shoukaku.dispatcher.get(guild.id)!;
 
     const next = dispatcher.queue[1];
 
@@ -160,11 +146,13 @@ export function getTracks(
     }
 
     if (indexCurrent + 1 === dispatcher.queue.length && dispatcher.loopType === 1) {
-      field.push({
-        name: "Next (Loop Queue)",
-        value: `${dispatcher.queue[0].info.title ?? "Unknown"}`,
-        inline: false,
-      });
+      if (dispatcher.loopTypeCurrent !== 1) {
+        field.push({
+          name: "Next (Loop Queue)",
+          value: `${dispatcher.queue[0].info.title ?? "Unknown"}`,
+          inline: false,
+        });
+      }
     }
 
     if (indexCurrent + 1 < dispatcher.queue.length && dispatcher.loopTypeCurrent === 0) {

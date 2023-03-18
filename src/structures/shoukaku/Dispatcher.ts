@@ -37,7 +37,6 @@ enum StopType {
   SKIP,
 }
 
-
 export class LavalinkDispatcher {
   public player: Player | null = null;
   public queue = new LavalinkQueue();
@@ -78,7 +77,7 @@ export class LavalinkDispatcher {
     const track = this.queue.current!;
     const authorId = this.queue.current?.requester!;
     const author = this.client.users.cache.get(authorId);
-    const duration = track.info.isStream ? "Live" : toHumanTime(track.info.length);
+    const duration = track.info.isStream ? "🔴 Live" : toHumanTime(track.info.length);
 
     const embed = this.options.ctx
       .makeEmbed(
@@ -255,8 +254,8 @@ export class LavalinkDispatcher {
           });
           if (searches.length === 0) {
             const embed = this.options.ctx.makeEmbed(":x: Error", "No lyric found");
-            interaction.reply({ embeds: [embed] });
-            return
+            await interaction.followUp({ embeds: [embed] });
+            return;
           }
 
           const song = searches[0];
@@ -279,7 +278,7 @@ export class LavalinkDispatcher {
 
             await interaction.followUp({ embeds: [embed] });
           }
-          break
+          break;
         }
       }
     });

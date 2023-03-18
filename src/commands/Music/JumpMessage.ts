@@ -5,6 +5,7 @@ import { ApplyOptions } from "@soon/utils/decorators/ApplyOptions";
 import { inVoiceChannel } from "@soon/utils/decorators/Music";
 import { Message, TextChannel, VoiceChannel } from "discord.js";
 import { Constants } from "shoukaku";
+import { queueEmpty } from "@soon/utils/decorators/Music";
 
 @ApplyOptions<CommandOptions>({
   name: "jumpmessage",
@@ -13,26 +14,12 @@ import { Constants } from "shoukaku";
   cooldown: 10,
 })
 export class JumpMessageCommand extends Command {
+  @queueEmpty()
   public async exec(ctx: CommandContext): Promise<Message | void> {
     const user = ctx.interaction.user;
-    const dispatcher = this.client.shoukaku.dispatcher.get(ctx.interaction.guild!.id);
+    const dispatcher = this.client.shoukaku.dispatcher.get(ctx.interaction.guild!.id)!;
 
-    if (!dispatcher || !dispatcher.queue.totalSize || dispatcher.timeout || !dispatcher.lastSongMessageId) {
-      const embed = ctx
-        .makeEmbed(
-          ":x: Error",
-          "There is no song that is played at this time, add the song with commands `/play, /search`",
-        )
-        .setFooter({
-          text: user.tag,
-          iconURL: user.avatarURL()!,
-        });
-      return ctx.reply({
-        embeds: [embed],
-        timeout: 15_000,
-      });
-    }
-    const message = await dispatcher.textChannel.messages.fetch(dispatcher.lastSongMessageId);
+    const message = await dispatcher.textChannel.messages.fetch(dispatcher.lastSongMessageId!);
     if (!message) {
       const embed = ctx.makeEmbed(":x: Error", "Message not found.");
       return ctx.reply({ embeds: [embed], ephemeral: true });

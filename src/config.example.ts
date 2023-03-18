@@ -11,9 +11,9 @@ export const botConfig = {
   version,
   nodes: [
     {
-      name: "",
-      url: "",
-      auth: "",
+      name: "NodeOption",
+      url: "localhost:2333",
+      auth: "youshallnotpass",
     },
   ] as NodeOption[],
   genius: {

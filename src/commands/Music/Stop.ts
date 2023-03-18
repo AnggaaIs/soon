@@ -3,6 +3,7 @@ import { CommandContext } from "@soon/structures/CommandContext";
 import { CommandOptions } from "@soon/typings";
 import { ApplyOptions } from "@soon/utils/decorators/ApplyOptions";
 import { Message } from "discord.js";
+import { inVoiceChannel, isVoiceChannelSame, queueEmpty } from "@soon/utils/decorators/Music";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -14,43 +15,14 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   userPermissions: ["Connect"],
 })
 export class PlayCommand extends Command {
+  @queueEmpty()
+  @inVoiceChannel()
+  @isVoiceChannelSame()
   public async exec(ctx: CommandContext): Promise<Message | void> {
     const guild = ctx.interaction.guild!;
     const user = ctx.interaction.user;
     const voiceChannel = ctx.interaction.guild?.members.cache.get(user.id)?.voice.channel;
     const dispatcher = this.client.shoukaku.dispatcher.get(guild.id);
-
-    if (!dispatcher || !dispatcher?.queue.length) {
-      const embed = ctx
-        .makeEmbed(
-          ":x: Error",
-          "There is no song that is played at this time, add the song with commands `/play, /search`",
-        )
-        .setFooter({
-          text: user.tag,
-          iconURL: user.avatarURL()!,
-        });
-      return ctx.reply({
-        embeds: [embed],
-        timeout: 15_000,
-      });
-    }
-
-    if (!voiceChannel) {
-      const embed = ctx
-        .makeEmbed(":x: Error", "You are not in a voice channel.")
-        .setFooter({ text: user.tag, iconURL: user.avatarURL()! });
-
-      return ctx.reply({ embeds: [embed], timeout: 15_000 });
-    }
-
-    if (dispatcher && voiceChannel.id !== dispatcher.voiceChannel.id) {
-      const embed = ctx
-        .makeEmbed(":x: Error", `You have to be in the **${dispatcher.voiceChannel.name}** voice channel`)
-        .setFooter({ text: user.tag, iconURL: user.avatarURL()! });
-
-      return ctx.reply({ embeds: [embed], timeout: 15_000 });
-    }
 
     this.client.shoukaku.destroyAll(guild.id);
     const embed = ctx

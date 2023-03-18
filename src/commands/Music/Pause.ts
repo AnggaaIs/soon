@@ -4,6 +4,7 @@ import { CommandOptions } from "@soon/typings";
 import { toHumanTime } from "@soon/utils";
 import { ApplyOptions } from "@soon/utils/decorators/ApplyOptions";
 import { Message } from "discord.js";
+import { inVoiceChannel, isVoiceChannelSame, queueEmpty } from "@soon/utils/decorators/Music";
 
 @ApplyOptions<CommandOptions>({
   name: "pause",
@@ -14,49 +15,20 @@ import { Message } from "discord.js";
   userPermissions: ["Connect"],
 })
 export class PauseCommand extends Command {
+  @queueEmpty()
+  @inVoiceChannel()
+  @isVoiceChannelSame()
   public async exec(ctx: CommandContext): Promise<Message | void> {
     if (!ctx.interaction.isChatInputCommand()) return;
 
     await ctx.deferReply();
     const guild = ctx.interaction.guild!;
-    const dispatcher = this.client.shoukaku.dispatcher.get(guild.id);
+    const dispatcher = this.client.shoukaku.dispatcher.get(guild.id)!;
     const user = ctx.interaction.user;
     const voiceChannel = ctx.interaction.guild?.members.cache.get(user.id)?.voice.channel;
     const position = ctx.interaction.options.getNumber("position", false) ?? 1;
     let noPosition = false;
     if (!ctx.interaction.options.getNumber("position", false)) noPosition = true;
-
-    if (!dispatcher || !dispatcher.queue.totalSize) {
-      const embed = ctx
-        .makeEmbed(
-          ":x: Error",
-          "There is no song that is played at this time, add the song with commands `/play, /search`",
-        )
-        .setFooter({
-          text: user.tag,
-          iconURL: user.avatarURL()!,
-        });
-      return ctx.reply({
-        embeds: [embed],
-        timeout: 15_000,
-      });
-    }
-
-    if (!voiceChannel) {
-      const embed = ctx
-        .makeEmbed(":x: Error", "You are not in a voice channel.")
-        .setFooter({ text: user.tag, iconURL: user.avatarURL()! });
-
-      return ctx.reply({ embeds: [embed], timeout: 15_000 });
-    }
-
-    if (dispatcher && voiceChannel.id !== dispatcher.voiceChannel.id) {
-      const embed = ctx
-        .makeEmbed(":x: Error", `You have to be in the **${dispatcher.voiceChannel.name}** voice channel`)
-        .setFooter({ text: user.tag, iconURL: user.avatarURL()! });
-
-      return ctx.reply({ embeds: [embed], timeout: 15_000 });
-    }
 
     if (guild.members?.me?.voice.mute) {
       const embed = ctx

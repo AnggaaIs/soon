@@ -43,3 +43,31 @@ export function isVoiceChannelSame(): any {
     }
   });
 }
+
+export function queueEmpty(): any {
+  return Inhibit(async (ctx) => {
+    await ctx.deferReply();
+    const guild = ctx.interaction.guild!;
+    const user = ctx.interaction.user;
+    const voiceChannel = ctx.interaction.guild?.members.cache.get(user.id)!.voice.channel;
+    const channel = ctx.interaction.channel as TextChannel;
+
+    const dispatcher = ctx.client.shoukaku.dispatcher.get(guild.id);
+
+    if (!dispatcher || !dispatcher?.queue.length) {
+      const embed = ctx
+        .makeEmbed(
+          ":x: Error",
+          "There is no song that is played at this time, add the song with commands `/play, /search`",
+        )
+        .setFooter({
+          text: user.tag,
+          iconURL: user.avatarURL()!,
+        });
+      return ctx.reply({
+        embeds: [embed],
+        timeout: 15_000,
+      });
+    }
+  });
+}
